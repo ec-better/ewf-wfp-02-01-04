@@ -2,7 +2,7 @@
   <jobTemplates>
     <jobTemplate id="notebook">
       <streamingExecutable>/application/notebook/run</streamingExecutable>
-      <defaultParameters><parameter id="N_1" title="No Aggregation" abstract="No aggregation" maxOccurs="1" scope="runtime" type="LiteralData">False</parameter><parameter id="N_3" title="30 Day Aggregation" abstract="Get a 30 day aggregation" maxOccurs="1" scope="runtime" type="LiteralData">True</parameter><parameter id="N_6" title="60 Day Aggregation" abstract="Get a 30 day aggregation" maxOccurs="1" scope="runtime" type="LiteralData">False</parameter><parameter id="regionOfInterest" title="WKT Polygon for the Region of Interest" abstract="Set the value of WKT Polygon" maxOccurs="1" scope="runtime" type="LiteralData">POLYGON((11.5030755518998 -11.1141633706909,41.0343255518998 -11.1141633706909,41.0343255518998 -34.9763656693858,11.5030755518998 -34.9763656693858,11.5030755518998 -11.1141633706909))</parameter><parameter id="nameOfRegion" title="Name of Region" abstract="Name of the region of interest" minOccurs="1" maxOccurs="1" scope="runtime" type="LiteralData">SouthernAfrica</parameter></defaultParameters>
+      <defaultParameters><parameter id="N_1" title="No Aggregation" abstract="No aggregation" maxOccurs="1" scope="runtime" type="LiteralData">False</parameter><parameter id="N_3" title="30 Day Aggregation" abstract="Get a 30 day aggregation" maxOccurs="1" scope="runtime" type="LiteralData">True</parameter><parameter id="N_6" title="60 Day Aggregation" abstract="Get a 30 day aggregation" maxOccurs="1" scope="runtime" type="LiteralData">False</parameter><parameter id="regionOfInterest" title="WKT Polygon for the Region of Interest" abstract="Set the value of WKT Polygon" maxOccurs="1" scope="runtime" type="LiteralData">POLYGON((11.5030755518998 -11.1141633706909,41.0343255518998 -11.1141633706909,41.0343255518998 -34.9763656693858,11.5030755518998 -34.9763656693858,11.5030755518998 -11.1141633706909))</parameter><parameter id="nameOfRegion" title="Name of Region" abstract="Name of the region of interest" minOccurs="1" maxOccurs="1" scope="runtime" type="LiteralData">SouthernAfrica</parameter><parameter id="indexAndApiKeys" title="index,apikey pairs" abstract="index,apikey pairs" minOccurs="1" maxOccurs="1" scope="runtime" type="LiteralData"/></defaultParameters>
      <defaultJobconf>
         <property id="mapred.task.timeout">9900000000000</property>
         <property id="ciop.job.max.tasks">1</property> 
@@ -14,7 +14,7 @@
     <node id="notebook">
       <job id="notebook"/>
       <sources>
-        <source id="source" title="Input references" abstract="Input references" refid="string:list" scope="runtime">https://catalog.terradue.com/modis/search?uid=MOD11C2.A2017001.006.2017013160908,https://catalog.terradue.com/modis/search?uid=MOD11C2.A2017009.006.2017020191355,https://catalog.terradue.com/modis/search?uid=MOD11C2.A2017017.006.2017025093208</source>
+        <source id="source" title="Input references" abstract="Input references" refid="string:list" scope="runtime">https://catalog.terradue.com/better-wfp-02-01-02/search?format=atom&amp;uid=B02BEB4BAA63351C44F3DF2C9A6D8D116D089325,https://catalog.terradue.com/better-wfp-02-01-03/search?format=atom&amp;uid=442355F3238A8B5B9A016D3929ED42FCCF13C236</source>
       </sources>
     </node>
   </workflow>
