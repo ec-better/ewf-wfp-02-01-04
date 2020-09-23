@@ -223,22 +223,126 @@ def main():
     os.makedirs(tmp_dir)
   
     # Loops over all the inputs
-    for reference in sys.stdin:
-      references.append(reference.rstrip())
+    #for reference in sys.stdin:
+    #  references.append(reference.rstrip())
       
     # get catalog credentials
-    global indexAndApiKeys
     global apikeys
     
-    indexAndApiKeys = ciop.getparam('indexAndApiKeys')
+    # organize indexes and apikeys in a python dictionary (used by stage-in)
+    apikeys = {ciop.getparam('indexAgg'): ciop.getparam('apikeyAgg'), ciop.getparam('indexLTA'): ciop.getparam('apikeyLTA')}
     
-    # organize indexes and apikeys in a python dictionary
     
-    indexAndApiKeys_splited = indexAndApiKeys.split(',')
-    apikeys = {}
-    for idx,ele in enumerate(indexAndApiKeys_splited):
-      if (idx % 2 == 0):
-        apikeys[ele] = indexAndApiKeys_splited[idx+1]
+    ### searching for aggregations ###
+    
+    index_agg = ciop.getparam('indexAgg')
+    apikey_agg = ciop.getparam('apikeyAgg')
+
+    startdate_agg = ciop.getparam('startdate')
+    enddate_agg = ciop.getparam('enddate')
+    
+
+    catalogue_url_agg = 'https://catalog.terradue.com/' + index_agg + '/search'
+
+    search_params_agg =  dict([('start', startdate_agg),
+                               ('stop', enddate_agg),
+                               ('count', 'unlimited')])
+
+
+    search_agg = ciop.search(end_point=catalogue_url_agg,
+                         params=search_params_agg,
+                         output_fields='self,identifier,startdate,enddate,enclosure,title',
+                         pagination = 100,
+                         timeout=300000,
+                         model='EOP')
+    
+    # to pandas
+    search_agg = pd.DataFrame.from_dict(search_agg)
+
+    # filter: only LST tif files
+    search_agg = search_agg[search_agg['title'].str.contains('Output LST.*\.tif')]
+    
+    
+    # filter by region
+    nor = ciop.getparam('nameOfRegion')
+    search_agg = search_agg[search_agg['title'].str.contains('_{}_'.format(nor))]
+
+    # filter by N
+    nlist = [ciop.getparam('N_1'), ciop.getparam('N_3'), ciop.getparam('N_6'), ciop.getparam('N_9'), ciop.getparam('N_12'), ciop.getparam('N_15'), ciop.getparam('N_18'), ciop.getparam('N_27'), ciop.getparam('N_36')]
+    #nlist = [N_1['value'], N_3['value'], N_6['value'], N_9['value'], N_12['value'], N_15['value'], N_18['value'], N_27['value'], N_36['value']]
+    nlist = [n == 'True' for n in nlist]
+    nvalues = [1, 3, 6, 9, 12, 15, 18, 27, 36]
+
+    ncombo = []
+    for nv,ntf in zip(nvalues,nlist):
+        if ntf:
+            ncombo.append(str(nv))
+
+    search_agg = search_agg[search_agg['title'].str.contains('_N(?:{})_'.format('|'.join(ncombo)))]
+    
+    
+    ### searching for LTAs ###
+    
+    index_LTA = ciop.getparam('indexLTA')
+    apikey_LTA = ciop.getparam('apikeyLTA')
+
+    startdate_LTA = ciop.getparam('startdate')
+    enddate_LTA = ciop.getparam('enddate')
+
+
+    catalogue_url_LTA = 'https://catalog.terradue.com/' + index_LTA + '/search'
+
+    search_params_LTA =  dict([('start', startdate_LTA),
+                               ('stop', enddate_LTA),
+                               ('count', 'unlimited')])
+
+
+    search_LTA = ciop.search(end_point=catalogue_url_LTA,
+                         params=search_params_LTA,
+                         output_fields='self,identifier,startdate,enddate,enclosure,title',
+                         pagination = 100,
+                         timeout=300000,
+                         model='EOP')
+    
+    # to pandas
+    search_LTA = pd.DataFrame.from_dict(search_LTA)
+    
+    # filter: only LTA LST tif files
+    search_LTA = search_LTA[search_LTA['title'].str.contains('Output LTA_LST.*\.tif')]
+    
+    # filter by region
+    search_LTA = search_LTA[search_LTA['title'].str.contains('_{}_'.format(nor))]
+
+    # filter by N
+    search_LTA = search_LTA[search_LTA['title'].str.contains('_N(?:{})_'.format('|'.join(ncombo)))]
+    
+    
+    # select only LTAs that correspond to at least one aggregation
+    search_LTA['remove'] = True
+    
+    for index_LTA, row_LTA in search_LTA.iterrows():
+
+        sm = pd.to_datetime(row_LTA['startdate']).month
+        sd = pd.to_datetime(row_LTA['startdate']).day
+        em = pd.to_datetime(row_LTA['enddate']).month
+        ed = pd.to_datetime(row_LTA['enddate']).day
+
+        for index_agg, row_agg in search_agg.iterrows():
+
+            if sm == pd.to_datetime(row_agg['startdate']).month and sd == pd.to_datetime(row_agg['startdate']).day and em == pd.to_datetime(row_agg['enddate']).month and ed == pd.to_datetime(row_agg['enddate']).day:
+
+                search_LTA['remove'].loc[index_LTA] = False
+
+                break;
+        
+    search_LTA = search_LTA[search_LTA['remove'] == False]
+    
+    
+    # fill references list
+    for r in search_agg['self'].tolist():
+        references.append(r)
+    for r in search_LTA['self'].tolist():
+        references.append(r)
    
     
     
