@@ -14,6 +14,8 @@ import ast
 
 from urlparse import urlparse
 
+import pandas as pd
+
 sys.path.append('/opt/anaconda/bin/')
 import cioppy
 ciop = cioppy.Cioppy()
@@ -149,13 +151,13 @@ def stage_in():
                 cat_apikey = apikeys[index]
       
       
-      search = ciop.search(end_point = reference, params = [], output_fields='enclosure,identifier', model='GeoTime',creds='{}:{}'.format(cat_index,cat_apikey))
+      search = ciop.search(end_point = reference, params = [], output_fields='enclosure,identifier,title', model='GeoTime',creds='{}:{}'.format(cat_index,cat_apikey))
       assert(search), sys.exit(ERR_RESOLUTION)
       
       
       parsed_url = urlparse(search[0]['enclosure'])
       durl = '%s://%s:%s@%s%s' % (list(parsed_url)[0], cat_index, cat_apikey, list(parsed_url)[1], list(parsed_url)[2])   
-      ciop.log('INFO', 'Retrieve %s from %s' % (search[0]['identifier'], durl))
+      ciop.log('INFO', 'Retrieve %s from %s' % (search[0]['title'], durl))
       retrieved = ciop.copy(durl, tmp_dir)
 
       assert(retrieved), sys.exit(ERR_STAGEIN)
@@ -230,7 +232,8 @@ def main():
     global apikeys
     
     # organize indexes and apikeys in a python dictionary (used by stage-in)
-    apikeys = {ciop.getparam('indexAgg'): ciop.getparam('apikeyAgg'), ciop.getparam('indexLTA'): ciop.getparam('apikeyLTA')}
+    apikeys = {ciop.getparam('indexAgg'): ciop.getparam('apikeyAgg'),
+               ciop.getparam('indexLTA'): ciop.getparam('apikeyLTA')}
     
     
     ### searching for aggregations ###
@@ -268,8 +271,16 @@ def main():
     search_agg = search_agg[search_agg['title'].str.contains('_{}_'.format(nor))]
 
     # filter by N
-    nlist = [ciop.getparam('N_1'), ciop.getparam('N_3'), ciop.getparam('N_6'), ciop.getparam('N_9'), ciop.getparam('N_12'), ciop.getparam('N_15'), ciop.getparam('N_18'), ciop.getparam('N_27'), ciop.getparam('N_36')]
-    #nlist = [N_1['value'], N_3['value'], N_6['value'], N_9['value'], N_12['value'], N_15['value'], N_18['value'], N_27['value'], N_36['value']]
+    nlist = [ciop.getparam('N_1'),
+             ciop.getparam('N_3'),
+             ciop.getparam('N_6'),
+             ciop.getparam('N_9'),
+             ciop.getparam('N_12'),
+             ciop.getparam('N_15'),
+             ciop.getparam('N_18'),
+             ciop.getparam('N_27'),
+             ciop.getparam('N_36')]
+
     nlist = [n == 'True' for n in nlist]
     nvalues = [1, 3, 6, 9, 12, 15, 18, 27, 36]
 
